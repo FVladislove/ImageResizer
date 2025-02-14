@@ -1,4 +1,6 @@
 use std::ffi::OsStr;
+use std::io;
+use std::io::{BufWriter, Write};
 use image::imageops::FilterType;
 use walkdir;
 use walkdir::{DirEntry, WalkDir};
@@ -11,10 +13,13 @@ fn is_image(file: &DirEntry, image_formats: &[&str]) -> bool {
 
 fn main() {
     let image_formats = ["png", "jpg", "jpeg"];
+    let stdout = io::stdout();
+    let mut writer = BufWriter::new(stdout.lock());
 
     for e in WalkDir::new(".").into_iter().filter_map(|e| e.ok()) {
         if e.metadata().unwrap().is_file() && is_image(&e, &image_formats){
-            println!("{}", e.path().display());
+            writeln!(writer, "{}", e.path().display()).expect("TODO: panic message");
+            writer.flush().unwrap();
 
             let image = image::open(e.path()).unwrap();
 
