@@ -1,25 +1,15 @@
-use std::ffi::OsStr;
-use std::io;
-use std::io::{BufWriter, Write};
+use std::time::Instant;
 use image::imageops::FilterType;
 use walkdir;
-use walkdir::{DirEntry, WalkDir};
-
-fn is_image(file: &DirEntry, image_formats: &[&str]) -> bool {
-    image_formats.contains(&file.path().extension()
-        .unwrap_or(OsStr::new(""))
-        .to_str().unwrap())
-}
+use walkdir::{WalkDir};
 
 fn main() {
     let image_formats = ["png", "jpg", "jpeg"];
-    let stdout = io::stdout();
-    let mut writer = BufWriter::new(stdout.lock());
-
+    let now = Instant::now();
     for e in WalkDir::new(".").into_iter().filter_map(|e| e.ok()) {
-        if e.metadata().unwrap().is_file() && is_image(&e, &image_formats){
-            writeln!(writer, "{}", e.path().display()).expect("TODO: panic message");
-            writer.flush().unwrap();
+        println!("{}", e.path().display());
+        if e.metadata().unwrap().is_file()
+            && image_formats.iter().any(|format| e.path().ends_with(format)) {
 
             let image = image::open(e.path()).unwrap();
 
@@ -46,4 +36,5 @@ fn main() {
             resized_image.save(path).expect("TODO: panic message");
         }
     }
+    println!("Took: {:?}", now.elapsed());
 }
