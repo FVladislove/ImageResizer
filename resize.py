@@ -3,6 +3,7 @@ import logging
 import time
 
 from PIL import Image
+from PIL.Image import Resampling
 
 
 def initialize_logging():
@@ -15,11 +16,10 @@ def initialize_logging():
 
 
 def convert_images(folder_path: str, level=1):
-    # print("".join(["\t" * level, "L-- ", folder_path]))
+    print("".join(["\t" * level, "L-- ", folder_path]))
 
     for filename in os.listdir(folder_path):
         item_path = os.path.join(folder_path, filename)
-        print(item_path)
         if os.path.isdir(item_path):
             convert_images(item_path, level + 1)
 
@@ -39,13 +39,13 @@ def convert_images(folder_path: str, level=1):
             # it is possible to set the smallest of the values of ~2000 pixels
             # less is possible, but in this way, the file is not too large
             # and the image quality remains at a high level
-            if max(width, height) < 2000:
+            if max(width, height) <= 2000:
                 image.close()
                 continue
 
             resize_coefficient = 2000 / max(width, height)
 
-            image.resize((int(width * resize_coefficient), int(height * resize_coefficient))).save(item_path)
+            image.resize((int(width * resize_coefficient), int(height * resize_coefficient)), resample=Resampling.LANCZOS).save(item_path)
             image.close()
 
 try:
